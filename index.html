@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="mp_GL appalti"/>
+<meta name="theme-color" content="#0a1628"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<title>mp_GL appalti</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+:root{
+  --navy:#0a1628; --navyMid:#112240; --navyLight:#1a3a6b;
+  --gold:#c9a84c; --goldL:#e8c96a;
+  --cream:#f5f0e8; --white:#ffffff; --slate:#7a8ba0;
+  --red:#dc2626; --green:#16a34a; --blue:#2563eb;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;background:var(--navy);color:var(--white);font-family:'Inter',sans-serif;-webkit-tap-highlight-color:transparent;overscroll-behavior:none;}
+input,textarea,select,button{font-family:inherit;}
+::-webkit-scrollbar{width:3px;} ::-webkit-scrollbar-thumb{background:var(--navyLight);border-radius:3px;}
+.screen{display:none;min-height:100vh;} .screen.active{display:flex;flex-direction:column;}
+/* TOP BAR */
+.topbar{background:var(--navyMid);border-bottom:1px solid var(--navyLight);padding:12px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:50;flex-shrink:0;}
+.topbar-title{font-family:'Playfair Display',serif;color:var(--gold);font-size:17px;flex:1;}
+.topbar-user{font-size:12px;color:var(--slate);}
+.back-btn{background:none;border:none;color:var(--gold);font-size:22px;cursor:pointer;padding:0 4px;}
+/* MAIN CONTENT */
+.content{flex:1;padding:16px 14px 80px;max-width:620px;margin:0 auto;width:100%;overflow-y:auto;}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;font-weight:600;border-radius:8px;border:none;cursor:pointer;transition:all .15s;padding:10px 18px;font-size:14px;}
+.btn-sm{padding:6px 12px;font-size:13px;}
+.btn-lg{padding:14px 24px;font-size:16px;}
+.btn-primary{background:linear-gradient(135deg,var(--gold),var(--goldL));color:var(--navy);box-shadow:0 2px 12px rgba(201,168,76,.3);}
+.btn-secondary{background:var(--navyMid);color:var(--white);border:1.5px solid var(--navyLight);}
+.btn-ghost{background:transparent;color:var(--gold);border:1.5px solid var(--gold);}
+.btn-danger{background:var(--red);color:var(--white);}
+.btn-success{background:var(--green);color:var(--white);}
+.btn-full{width:100%;justify-content:center;}
+.btn:disabled{opacity:.45;cursor:not-allowed;}
+/* FORM ELEMENTS */
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:11px;font-weight:600;color:var(--gold);margin-bottom:5px;text-transform:uppercase;letter-spacing:.6px;}
+.field input,.field textarea,.field select{width:100%;background:var(--navyMid);border:1.5px solid var(--navyLight);color:var(--white);border-radius:8px;padding:10px 13px;font-size:15px;outline:none;appearance:none;}
+.field textarea{resize:vertical;}
+.field select option{background:var(--navyMid);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+/* CARD */
+.card{background:var(--navyMid);border-radius:14px;padding:18px;border:1px solid var(--navyLight);margin-bottom:12px;}
+/* TAG */
+.tag{display:inline-flex;align-items:center;background:rgba(201,168,76,.15);color:var(--gold);border:1px solid rgba(201,168,76,.35);border-radius:20px;padding:2px 10px;font-size:12px;font-weight:600;}
+.tag-green{background:rgba(22,163,74,.15);color:#4ade80;border-color:rgba(22,163,74,.4);}
+.tag-blue{background:rgba(37,99,235,.15);color:#60a5fa;border-color:rgba(37,99,235,.4);}
+.tag-red{background:rgba(220,38,38,.15);color:#f87171;border-color:rgba(220,38,38,.4);}
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;padding:12px 8px;overflow-y:auto;align-items:flex-start;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:var(--navy);border-radius:16px;padding:22px;width:100%;max-width:540px;border:1px solid var(--navyLight);margin:auto;animation:slideUp .2s ease;}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+.modal-title{font-family:'Playfair Display',serif;color:var(--gold);font-size:19px;}
+.modal-close{background:none;border:none;color:var(--slate);font-size:24px;cursor:pointer;line-height:1;padding:0;}
+.modal-scroll{max-height:70vh;overflow-y:auto;padding-right:4px;}
+/* ALLEGATI */
+.allegati-section{background:var(--navy);border-radius:10px;border:1px solid var(--navyLight);padding:12px;margin-bottom:10px;}
+.allegati-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.allegati-label{font-weight:700;color:var(--gold);font-size:13px;}
+.allegati-btns{display:flex;gap:6px;}
+.foto-preview{width:100%;max-height:180px;object-fit:cover;border-radius:7px;display:block;margin-bottom:6px;}
+.foto-thumb{width:100%;max-height:140px;object-fit:cover;border-radius:7px;display:block;}
+.audio-player{width:100%;margin:6px 0;}
+.allegato-item{background:var(--navyMid);border-radius:8px;padding:10px;margin-bottom:8px;border:1px solid var(--navyLight);}
+.allegato-row{display:flex;align-items:flex-start;gap:8px;}
+.allegato-icon{font-size:26px;flex-shrink:0;margin-top:2px;}
+.allegato-info{flex:1;min-width:0;}
+.allegato-name{font-size:13px;font-weight:600;word-break:break-all;}
+.caption-input{width:100%;background:transparent;border:none;border-bottom:1px solid var(--navyLight);color:var(--cream);font-size:12px;padding:3px 0;margin-top:5px;outline:none;}
+.caption-text{font-size:12px;color:var(--slate);font-style:italic;margin-top:4px;}
+/* FIRMA */
+.firma-wrap{background:var(--cream);border-radius:10px;border:2px dashed var(--navyLight);position:relative;overflow:hidden;touch-action:none;}
+.firma-canvas{display:block;width:100%;height:110px;cursor:crosshair;}
+.firma-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:13px;pointer-events:none;}
+/* RECORDING */
+.rec-bar{background:var(--navyMid);border-radius:8px;padding:10px 12px;margin:8px 0;display:flex;align-items:center;gap:10px;}
+.rec-dot{width:12px;height:12px;border-radius:50%;background:var(--red);flex-shrink:0;animation:blink 1s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.2;}}
+.rec-progress{flex:1;height:6px;background:var(--navyLight);border-radius:4px;overflow:hidden;}
+.rec-fill{height:100%;background:var(--red);border-radius:4px;transition:width .9s linear;}
+/* MONTH TABS */
+.month-tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;scrollbar-width:none;}
+.month-tabs::-webkit-scrollbar{display:none;}
+.month-tab{flex-shrink:0;padding:5px 14px;border-radius:20px;border:none;cursor:pointer;font-weight:600;font-size:13px;font-family:inherit;}
+.month-tab.active{background:var(--gold);color:var(--navy);}
+.month-tab:not(.active){background:var(--navyMid);color:var(--slate);}
+/* LOGIN */
+.auth-center{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;background:linear-gradient(160deg,var(--navy) 0%,var(--navyMid) 100%);}
+.auth-logo{font-size:56px;margin-bottom:10px;text-align:center;}
+.auth-title{font-family:'Playfair Display',serif;font-size:28px;color:var(--gold);text-align:center;margin-bottom:4px;}
+.auth-sub{color:var(--slate);font-size:14px;text-align:center;margin-bottom:28px;}
+.auth-box{background:var(--navyMid);border-radius:16px;padding:22px;width:100%;max-width:380px;border:1px solid var(--navyLight);}
+.tab-btns{display:flex;gap:8px;margin-bottom:18px;}
+.tab-btn{flex:1;padding:9px;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:14px;font-family:inherit;}
+.tab-btn.active{background:linear-gradient(135deg,var(--gold),var(--goldL));color:var(--navy);}
+.tab-btn:not(.active){background:var(--navyLight);color:var(--slate);}
+.err-box{color:var(--red);font-size:13px;padding:8px 12px;background:rgba(220,38,38,.15);border-radius:6px;margin-bottom:12px;}
+/* VOICE */
+.voice-btn{background:none;border:1px solid var(--navyLight);border-radius:6px;padding:3px 9px;color:var(--slate);cursor:pointer;font-size:12px;display:inline-flex;align-items:center;gap:4px;font-family:inherit;}
+.voice-btn.active{border-color:var(--red);color:var(--red);background:rgba(220,38,38,.1);}
+.field-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
+/* PRINT SECTION */
+#print-frame{display:none;}
+.empty-state{text-align:center;padding:40px 20px;color:var(--slate);}
+.empty-state .icon{font-size:44px;margin-bottom:10px;}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ SCREEN: LOGIN ═══════════════ -->
+<div id="screen-login" class="screen active">
+<div class="auth-center">
+  <div class="auth-logo">🏗️</div>
+  <div class="auth-title">mp_GL appalti</div>
+  <div class="auth-sub">Giornale Lavori — Appalti Pubblici</div>
+  <div class="auth-box">
+    <div class="tab-btns">
+      <button class="tab-btn active" onclick="switchAuthTab('login')">Accedi</button>
+      <button class="tab-btn" onclick="switchAuthTab('register')">Registrati</button>
+    </div>
+    <div id="auth-register-fields" style="display:none">
+      <div class="field"><label>Nome completo *</label><input id="reg-nome" type="text" placeholder="Mario Rossi"/></div>
+      <div class="field"><label>Ruolo *</label>
+        <select id="reg-ruolo">
+          <option value="DL">Direttore Lavori (DL)</option>
+          <option value="IC">Ispettore di Cantiere</option>
+          <option value="DO">Direttore Operativo</option>
+        </select>
+      </div>
+    </div>
+    <div class="field"><label>Username *</label><input id="auth-user" type="text" autocomplete="username"/></div>
+    <div class="field"><label>Password *</label><input id="auth-pass" type="password" autocomplete="current-password"/></div>
+    <div id="auth-err" class="err-box" style="display:none"></div>
+    <button id="auth-btn" class="btn btn-primary btn-lg btn-full" onclick="doAuth()">🔐 Accedi</button>
+  </div>
+  <p style="color:var(--slate);font-size:11px;margin-top:16px;text-align:center">Dati salvati sul dispositivo · v2.0</p>
+</div>
+</div>
+
+<!-- ═══════════════ SCREEN: APPALTI ═══════════════ -->
+<div id="screen-appalti" class="screen">
+  <div class="topbar">
+    <span class="topbar-title">📋 mp_GL appalti</span>
+    <span class="topbar-user" id="topbar-user"></span>
+    <button class="btn btn-ghost btn-sm" onclick="doLogout()">Esci</button>
+  </div>
+  <div class="content">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+      <span style="font-family:'Playfair Display',serif;font-size:20px;color:var(--gold)">🏗️ Appalti</span>
+      <button class="btn btn-primary btn-sm" onclick="openModalAppalto()">+ Nuovo</button>
+    </div>
+    <div id="appalti-list"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ SCREEN: GIORNALE ═══════════════ -->
+<div id="screen-gl" class="screen">
+  <div class="topbar">
+    <button class="back-btn" onclick="showScreen('appalti')">←</button>
+    <span class="topbar-title" id="gl-title">Giornale Lavori</span>
+    <button class="btn btn-ghost btn-sm" onclick="doLogout()">Esci</button>
+  </div>
+  <div class="content">
+    <div id="gl-header"></div>
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+      <button class="btn btn-primary btn-sm" style="flex:2" onclick="openModalReg()">+ Nuovo Verbale</button>
+      <button class="btn btn-ghost btn-sm" onclick="openModalStampa()">🖨️ Stampa</button>
+      <button class="btn btn-secondary btn-sm" onclick="openModalBackup()">📦 Backup</button>
+    </div>
+    <div id="month-tabs-row" class="month-tabs"></div>
+    <div id="reg-list"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: APPALTO ═══════════════ -->
+<div id="modal-appalto" class="modal-overlay" onclick="closeModalIfOverlay(event,'modal-appalto')">
+<div class="modal-box">
+  <div class="modal-header">
+    <span class="modal-title" id="modal-appalto-title">🏗️ Nuovo Appalto</span>
+    <button class="modal-close" onclick="closeModal('modal-appalto')">✕</button>
+  </div>
+  <div class="modal-scroll">
+    <div class="field"><label>Foto cantiere</label>
+      <input id="ap-foto-input" type="file" accept="image/*" onchange="apFotoLoad(event)" style="color:var(--white);font-size:13px;"/>
+      <img id="ap-foto-preview" src="" style="display:none;width:100%;max-height:140px;object-fit:cover;border-radius:8px;margin-top:8px;"/>
+    </div>
+    <div class="field"><label>Nome / Oggetto appalto *</label><input id="ap-nome" type="text"/></div>
+    <div class="field"><label>Codice appalto</label><input id="ap-codice" type="text"/></div>
+    <div class="field"><label>Indirizzo cantiere</label><input id="ap-ind" type="text"/></div>
+    <div class="grid2">
+      <div class="field"><label>CIG</label><input id="ap-cig" type="text"/></div>
+      <div class="field"><label>CUP</label><input id="ap-cup" type="text"/></div>
+    </div>
+    <div class="field"><label>Importo contrattuale (€)</label><input id="ap-importo" type="number" step="0.01"/></div>
+    <div class="grid2">
+      <div class="field"><label>Data inizio</label><input id="ap-dinizio" type="date"/></div>
+      <div class="field"><label>Durata (giorni)</label><input id="ap-durata" type="number"/></div>
+    </div>
+    <div class="field"><label>Direttore Lavori (DL)</label><input id="ap-dl" type="text"/></div>
+    <div class="field"><label>RUP</label><input id="ap-rup" type="text"/></div>
+    <div class="field"><label>Progettista</label><input id="ap-prog" type="text"/></div>
+    <div class="field"><label>CSE</label><input id="ap-cse" type="text"/></div>
+    <div class="field"><label>Note generali</label><textarea id="ap-note" rows="2"></textarea></div>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:16px;">
+    <button class="btn btn-secondary btn-sm" style="flex:1;justify-content:center" onclick="closeModal('modal-appalto')">Annulla</button>
+    <button class="btn btn-primary" style="flex:2;justify-content:center" onclick="saveAppalto()">💾 Salva Appalto</button>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════ MODAL: REGISTRAZIONE ═══════════════ -->
+<div id="modal-reg" class="modal-overlay" onclick="closeModalIfOverlay(event,'modal-reg')">
+<div class="modal-box">
+  <div class="modal-header">
+    <span class="modal-title" id="modal-reg-title">📝 Nuova Registrazione</span>
+    <button class="modal-close" onclick="closeModal('modal-reg')">✕</button>
+  </div>
+  <div class="modal-scroll" id="modal-reg-scroll">
+
+    <div class="field"><label>Data *</label><input id="reg-data" type="date"/></div>
+    <div class="grid3">
+      <div class="field"><label>Meteo</label><input id="reg-meteo" type="text" placeholder="Sole…"/></div>
+      <div class="field"><label>Temp °C</label><input id="reg-temp" type="number"/></div>
+      <div class="field"><label>Vento</label><input id="reg-vento" type="text" placeholder="Assente…"/></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Ora inizio</label><input id="reg-ori" type="time"/></div>
+      <div class="field"><label>Ora fine</label><input id="reg-orf" type="time"/></div>
+    </div>
+    <div class="field"><label>Personale e mezzi</label><textarea id="reg-pres" rows="2" placeholder="Es: 2 operai, 1 escavatore…"></textarea></div>
+
+    <div class="field">
+      <div class="field-row">
+        <label style="margin:0">Lavorazioni eseguite *</label>
+        <button class="voice-btn" id="voice-btn-lav" onclick="toggleVoice('reg-lav','voice-btn-lav')">🎤 Ditta</button>
+      </div>
+      <textarea id="reg-lav" rows="5" placeholder="Descrizione dettagliata delle lavorazioni…" style="width:100%;background:var(--navyMid);border:1.5px solid var(--navyLight);color:var(--white);border-radius:8px;padding:10px 13px;font-size:15px;outline:none;resize:vertical;"></textarea>
+    </div>
+
+    <div class="field">
+      <div class="field-row">
+        <label style="margin:0">Note / ODS</label>
+        <button class="voice-btn" id="voice-btn-note" onclick="toggleVoice('reg-note','voice-btn-note')">🎤 Ditta</button>
+      </div>
+      <textarea id="reg-note" rows="3" placeholder="Note, ordini di servizio…" style="width:100%;background:var(--navyMid);border:1.5px solid var(--navyLight);color:var(--white);border-radius:8px;padding:10px 13px;font-size:15px;outline:none;resize:vertical;"></textarea>
+    </div>
+
+    <!-- ALLEGATI FOTO -->
+    <div class="allegati-section">
+      <div class="allegati-header">
+        <span class="allegati-label">🖼️ Foto <span id="foto-count">(0/5)</span></span>
+        <div class="allegati-btns">
+          <button class="btn btn-ghost btn-sm" onclick="triggerCamera()">📷 Scatta</button>
+          <button class="btn btn-secondary btn-sm" onclick="triggerGallery()">📁 Carica</button>
+        </div>
+      </div>
+      <input id="input-camera" type="file" accept="image/*" capture="environment" style="display:none" onchange="addFoto(event)"/>
+      <input id="input-gallery" type="file" accept="image/jpeg,image/jpg,image/png,image/webp" style="display:none" onchange="addFoto(event)"/>
+      <div id="foto-pending" style="display:none;background:var(--navyMid);border-radius:8px;padding:10px;margin-bottom:8px;">
+        <img id="foto-pending-img" class="foto-preview"/>
+        <div class="field"><label>Didascalia</label><input id="foto-pending-caption" type="text" placeholder="Descrivi la foto…"/></div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-secondary btn-sm" onclick="cancelFoto()">✕ Annulla</button>
+          <button class="btn btn-success" style="flex:1;justify-content:center" onclick="confirmFoto()">➕ Aggiungi foto</button>
+        </div>
+      </div>
+      <div id="foto-list"></div>
+    </div>
+
+    <!-- ALLEGATI PDF -->
+    <div class="allegati-section">
+      <div class="allegati-header">
+        <span class="allegati-label">📄 PDF <span id="pdf-count">(0/3)</span></span>
+        <input id="input-pdf" type="file" accept="application/pdf" style="display:none" onchange="addPdf(event)"/>
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('input-pdf').click()">📁 Allega PDF</button>
+      </div>
+      <div id="pdf-pending" style="display:none;background:var(--navyMid);border-radius:8px;padding:10px;margin-bottom:8px;">
+        <div id="pdf-pending-name" style="color:var(--gold);margin-bottom:8px;font-size:14px;"></div>
+        <div class="field"><label>Didascalia</label><input id="pdf-pending-caption" type="text" placeholder="Descrivi il documento…"/></div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-secondary btn-sm" onclick="cancelPdf()">✕ Annulla</button>
+          <button class="btn btn-success" style="flex:1;justify-content:center" onclick="confirmPdf()">➕ Aggiungi PDF</button>
+        </div>
+      </div>
+      <div id="pdf-list"></div>
+    </div>
+
+    <!-- ALLEGATI AUDIO -->
+    <div class="allegati-section">
+      <div class="allegati-header">
+        <span class="allegati-label">🎙️ Audio <span id="audio-count">(0/2)</span></span>
+        <div class="allegati-btns">
+          <button class="btn btn-ghost btn-sm" id="rec-start-btn" onclick="startRecording()">🔴 Registra</button>
+          <input id="input-audio" type="file" accept="audio/*" style="display:none" onchange="addAudio(event)"/>
+          <button class="btn btn-secondary btn-sm" onclick="document.getElementById('input-audio').click()">📁 Carica</button>
+        </div>
+      </div>
+      <div id="rec-bar" style="display:none" class="rec-bar">
+        <div class="rec-dot"></div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Registrazione in corso…</div>
+          <div class="rec-progress"><div class="rec-fill" id="rec-fill" style="width:0%"></div></div>
+          <div id="rec-secs" style="font-size:11px;color:var(--slate);margin-top:3px;">0s / 30s</div>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="stopRecording()">⏹ Stop</button>
+      </div>
+      <div id="audio-pending" style="display:none;background:var(--navyMid);border-radius:8px;padding:10px;margin-bottom:8px;">
+        <audio id="audio-pending-player" controls class="audio-player"></audio>
+        <div id="audio-pending-name" style="color:var(--gold);font-size:13px;margin-bottom:8px;"></div>
+        <div class="field"><label>Didascalia</label><input id="audio-pending-caption" type="text" placeholder="Descrivi la nota audio…"/></div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-secondary btn-sm" onclick="cancelAudio()">✕ Annulla</button>
+          <button class="btn btn-success" style="flex:1;justify-content:center" onclick="confirmAudio()">➕ Aggiungi audio</button>
+        </div>
+      </div>
+      <div id="audio-list"></div>
+    </div>
+
+    <!-- FIRME -->
+    <div style="border-top:1px solid var(--navyLight);padding-top:16px;margin-top:8px;">
+      <div style="font-weight:700;color:var(--gold);font-size:14px;margin-bottom:14px;">✍️ Firme</div>
+      <div class="field">
+        <label id="firma-dl-label">Firma DL</label>
+        <div class="firma-wrap" id="firma-dl-wrap">
+          <canvas id="firma-dl" class="firma-canvas" width="480" height="110"></canvas>
+          <div class="firma-placeholder" id="firma-dl-ph">Firma qui con il dito</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:6px" onclick="clearFirma('dl')">✕ Cancella firma DL</button>
+      </div>
+      <div class="field">
+        <label>Firma Ditta / Impresa</label>
+        <div class="firma-wrap" id="firma-ditta-wrap">
+          <canvas id="firma-ditta" class="firma-canvas" width="480" height="110"></canvas>
+          <div class="firma-placeholder" id="firma-ditta-ph">Firma qui con il dito</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:6px" onclick="clearFirma('ditta')">✕ Cancella firma Ditta</button>
+      </div>
+    </div>
+
+  </div><!-- end modal-scroll -->
+  <div style="display:flex;gap:8px;margin-top:16px;">
+    <button class="btn btn-secondary btn-sm" style="flex:1;justify-content:center" onclick="closeModal('modal-reg')">Annulla</button>
+    <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center" onclick="saveReg('bozza')">💾 Bozza</button>
+    <button class="btn btn-primary" style="flex:2;justify-content:center" onclick="saveReg('firmato')">✅ Firma & Salva</button>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════ MODAL: STAMPA ═══════════════ -->
+<div id="modal-stampa" class="modal-overlay" onclick="closeModalIfOverlay(event,'modal-stampa')">
+<div class="modal-box">
+  <div class="modal-header">
+    <span class="modal-title">🖨️ Stampa / PDF</span>
+    <button class="modal-close" onclick="closeModal('modal-stampa')">✕</button>
+  </div>
+  <p style="color:var(--slate);font-size:14px;margin-bottom:14px;">Filtra per mese o lascia vuoto per tutto il GL.</p>
+  <div class="field"><label>Mese</label>
+    <select id="stampa-mese"><option value="">Tutti i periodi</option></select>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:8px;">
+    <button class="btn btn-secondary btn-sm" style="flex:1;justify-content:center" onclick="closeModal('modal-stampa')">Annulla</button>
+    <button class="btn btn-primary" style="flex:2;justify-content:center" onclick="doStampa()">🖨️ Genera & Apri</button>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════ MODAL: BACKUP ═══════════════ -->
+<div id="modal-backup" class="modal-overlay" onclick="closeModalIfOverlay(event,'modal-backup')">
+<div class="modal-box">
+  <div class="modal-header">
+    <span class="modal-title">📦 Backup Registrazioni</span>
+    <button class="modal-close" onclick="closeModal('modal-backup')">✕</button>
+  </div>
+  <div style="background:var(--navy);border-radius:10px;padding:14px;margin-bottom:14px;border:1px solid var(--navyLight);">
+    <div style="font-weight:700;color:var(--gold);margin-bottom:6px;">⬇️ Scarica</div>
+    <p style="color:var(--slate);font-size:13px;margin-bottom:10px;">Esporta tutte le registrazioni di questo appalto come file JSON.</p>
+    <button class="btn btn-primary btn-full" onclick="doExportJSON()">⬇️ Scarica file JSON</button>
+  </div>
+  <div style="background:var(--navy);border-radius:10px;padding:14px;border:1px solid var(--navyLight);">
+    <div style="font-weight:700;color:var(--gold);margin-bottom:6px;">⬆️ Importa</div>
+    <p style="color:var(--slate);font-size:13px;margin-bottom:10px;">Carica un JSON precedente. I duplicati vengono saltati, solo le nuove registrazioni vengono aggiunte.</p>
+    <input id="import-json-input" type="file" accept=".json,application/json" style="display:none" onchange="doImportJSON(event)"/>
+    <button class="btn btn-ghost btn-full" onclick="document.getElementById('import-json-input').click()">⬆️ Seleziona file JSON</button>
+    <div id="import-msg" style="display:none;margin-top:10px;padding:10px;border-radius:8px;font-size:13px;font-weight:600;"></div>
+  </div>
+  <button class="btn btn-secondary btn-full" style="margin-top:14px;" onclick="closeModal('modal-backup')">Chiudi</button>
+</div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// DATA LAYER
+// ═══════════════════════════════════════════════════════════
+const STORE_KEY='mpGL_v2';
+let DB={users:[],appalti:[],registrazioni:[],currentUser:null};
+
+function loadDB(){try{const d=localStorage.getItem(STORE_KEY);if(d)DB=JSON.parse(d);}catch(e){}}
+function saveDB(){try{localStorage.setItem(STORE_KEY,JSON.stringify(DB));}catch(e){alert('Errore salvataggio: '+e.message);}}
+function uid(){return Math.random().toString(36).slice(2)+Date.now().toString(36);}
+function fmtDate(d){return d?new Date(d).toLocaleDateString('it-IT'):'—';}
+function fmtCur(v){return v?Number(v).toLocaleString('it-IT',{style:'currency',currency:'EUR'}):'—';}
+const MONTHS=['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+
+loadDB();
+
+// ═══════════════════════════════════════════════════════════
+// SCREEN ROUTING
+// ═══════════════════════════════════════════════════════════
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ═══════════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════════
+let authMode='login';
+function switchAuthTab(mode){
+  authMode=mode;
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>{b.classList.toggle('active',(mode==='login'&&i===0)||(mode==='register'&&i===1));});
+  document.getElementById('auth-register-fields').style.display=mode==='register'?'block':'none';
+  document.getElementById('auth-btn').textContent=mode==='login'?'🔐 Accedi':'✅ Crea account';
+}
+function doAuth(){
+  const user=document.getElementById('auth-user').value.trim();
+  const pass=document.getElementById('auth-pass').value;
+  const errEl=document.getElementById('auth-err');
+  errEl.style.display='none';
+  if(!user||!pass){errEl.textContent='Compila username e password';errEl.style.display='block';return;}
+  if(authMode==='login'){
+    const u=DB.users.find(u=>u.username===user&&u.password===pass);
+    if(!u){errEl.textContent='Credenziali non valide';errEl.style.display='block';return;}
+    DB.currentUser=u;saveDB();enterApp(u);
+  } else {
+    const nome=document.getElementById('reg-nome').value.trim();
+    const ruolo=document.getElementById('reg-ruolo').value;
+    if(!nome){errEl.textContent='Inserisci il nome completo';errEl.style.display='block';return;}
+    if(DB.users.find(u=>u.username===user)){errEl.textContent='Username già in uso';errEl.style.display='block';return;}
+    const u={id:uid(),username:user,password:pass,nome,ruolo,createdAt:new Date().toISOString()};
+    DB.users.push(u);DB.currentUser=u;saveDB();enterApp(u);
+  }
+}
+function enterApp(u){
+  document.getElementById('topbar-user').textContent='👤 '+u.nome;
+  renderAppalti();showScreen('appalti');
+}
+function doLogout(){
+  DB.currentUser=null;saveDB();
+  currentAppalto=null;
+  ['auth-user','auth-pass'].forEach(id=>document.getElementById(id).value='');
+  showScreen('login');
+}
+
+// Boot
+if(DB.currentUser){
+  const u=DB.users.find(u=>u.id===DB.currentUser.id)||DB.currentUser;
+  DB.currentUser=u;
+  enterApp(u);
+}
+
+// ═══════════════════════════════════════════════════════════
+// APPALTI
+// ═══════════════════════════════════════════════════════════
+let currentAppalto=null;
+let editAppaltoId=null;
+let apFotoData=null;
+
+function renderAppalti(){
+  const el=document.getElementById('appalti-list');
+  if(!DB.appalti.length){
+    el.innerHTML=`<div class="empty-state"><div class="icon">📋</div><p>Nessun appalto ancora.<br>Crea il tuo primo appalto!</p></div>`;return;
+  }
+  el.innerHTML=DB.appalti.map(ap=>{
+    const nReg=DB.registrazioni.filter(r=>r.appaltoId===ap.id).length;
+    return `<div class="card">
+      ${ap.foto?`<img src="${ap.foto}" style="width:100%;height:120px;object-fit:cover;border-radius:8px;margin-bottom:12px;"/>`:''}
+      <div style="font-weight:700;font-size:16px;margin-bottom:4px;">${esc(ap.nome)}</div>
+      ${ap.indirizzo?`<div style="color:var(--slate);font-size:13px;">📍 ${esc(ap.indirizzo)}</div>`:''}
+      ${ap.importo?`<div style="color:var(--goldL);font-size:13px;margin-top:2px;">💶 ${fmtCur(ap.importo)}</div>`:''}
+      ${ap.dl?`<div style="color:var(--slate);font-size:13px;margin-top:2px;">👷 DL: ${esc(ap.dl)}</div>`:''}
+      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+        ${ap.dataInizio?`<span class="tag tag-blue">📅 ${fmtDate(ap.dataInizio)}</span>`:''}
+        <span class="tag">${nReg} verbali</span>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:14px;">
+        <button class="btn btn-primary btn-sm" style="flex:2;justify-content:center" onclick="openGL('${ap.id}')">📂 Apri GL</button>
+        <button class="btn btn-ghost btn-sm" onclick="editAppalto('${ap.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="delAppalto('${ap.id}')">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openModalAppalto(){
+  editAppaltoId=null;apFotoData=null;
+  document.getElementById('modal-appalto-title').textContent='🏗️ Nuovo Appalto';
+  ['ap-nome','ap-codice','ap-ind','ap-cig','ap-cup','ap-importo','ap-dinizio','ap-durata','ap-dl','ap-rup','ap-prog','ap-cse','ap-note'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  document.getElementById('ap-foto-preview').style.display='none';
+  document.getElementById('ap-foto-preview').src='';
+  openModal('modal-appalto');
+}
+
+function editAppalto(id){
+  const ap=DB.appalti.find(a=>a.id===id);if(!ap)return;
+  editAppaltoId=id;apFotoData=ap.foto||null;
+  document.getElementById('modal-appalto-title').textContent='✏️ Modifica Appalto';
+  document.getElementById('ap-nome').value=ap.nome||'';
+  document.getElementById('ap-codice').value=ap.codice||'';
+  document.getElementById('ap-ind').value=ap.indirizzo||'';
+  document.getElementById('ap-cig').value=ap.cig||'';
+  document.getElementById('ap-cup').value=ap.cup||'';
+  document.getElementById('ap-importo').value=ap.importo||'';
+  document.getElementById('ap-dinizio').value=ap.dataInizio||'';
+  document.getElementById('ap-durata').value=ap.durata||'';
+  document.getElementById('ap-dl').value=ap.dl||'';
+  document.getElementById('ap-rup').value=ap.rup||'';
+  document.getElementById('ap-prog').value=ap.progettista||'';
+  document.getElementById('ap-cse').value=ap.cse||'';
+  document.getElementById('ap-note').value=ap.note||'';
+  if(ap.foto){document.getElementById('ap-foto-preview').src=ap.foto;document.getElementById('ap-foto-preview').style.display='block';}
+  else{document.getElementById('ap-foto-preview').style.display='none';}
+  openModal('modal-appalto');
+}
+
+function apFotoLoad(e){
+  const f=e.target.files[0];if(!f)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    resizeImg(ev.target.result,1,d=>{
+      apFotoData=d;
+      const img=document.getElementById('ap-foto-preview');
+      img.src=d;img.style.display='block';
+    });
+  };
+  reader.readAsDataURL(f);
+}
+
+function saveAppalto(){
+  const nome=document.getElementById('ap-nome').value.trim();
+  if(!nome){alert('Inserisci il nome dell\'appalto');return;}
+  const ap={
+    id:editAppaltoId||uid(),
+    nome,
+    codice:document.getElementById('ap-codice').value.trim(),
+    indirizzo:document.getElementById('ap-ind').value.trim(),
+    cig:document.getElementById('ap-cig').value.trim(),
+    cup:document.getElementById('ap-cup').value.trim(),
+    importo:document.getElementById('ap-importo').value,
+    dataInizio:document.getElementById('ap-dinizio').value,
+    durata:document.getElementById('ap-durata').value,
+    dl:document.getElementById('ap-dl').value.trim(),
+    rup:document.getElementById('ap-rup').value.trim(),
+    progettista:document.getElementById('ap-prog').value.trim(),
+    cse:document.getElementById('ap-cse').value.trim(),
+    note:document.getElementById('ap-note').value.trim(),
+    foto:apFotoData,
+    createdAt:editAppaltoId?DB.appalti.find(a=>a.id===editAppaltoId)?.createdAt:new Date().toISOString()
+  };
+  if(editAppaltoId){DB.appalti=DB.appalti.map(a=>a.id===editAppaltoId?ap:a);}
+  else{DB.appalti.push(ap);}
+  saveDB();renderAppalti();closeModal('modal-appalto');
+}
+
+function delAppalto(id){
+  if(!confirm('Eliminare questo appalto e tutte le sue registrazioni?'))return;
+  DB.appalti=DB.appalti.filter(a=>a.id!==id);
+  DB.registrazioni=DB.registrazioni.filter(r=>r.appaltoId!==id);
+  saveDB();renderAppalti();
+}
+
+// ═══════════════════════════════════════════════════════════
+// GIORNALE LAVORI
+// ═══════════════════════════════════════════════════════════
+let glFilterMese='';
+
+function openGL(id){
+  currentAppalto=DB.appalti.find(a=>a.id===id);
+  document.getElementById('gl-title').textContent=currentAppalto.nome;
+  renderGLHeader();renderGLMonths();renderRegList();
+  showScreen('gl');
+}
+
+function renderGLHeader(){
+  const ap=currentAppalto;
+  document.getElementById('gl-header').innerHTML=`
+    <div class="card" style="margin-bottom:12px;">
+      ${ap.foto?`<img src="${ap.foto}" style="width:100%;height:100px;object-fit:cover;border-radius:8px;margin-bottom:10px;"/>`:''}
+      <div style="font-weight:700;font-size:15px;">${esc(ap.nome)}</div>
+      ${ap.indirizzo?`<div style="color:var(--slate);font-size:13px;">📍 ${esc(ap.indirizzo)}</div>`:''}
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">
+        ${ap.dl?`<span class="tag">DL: ${esc(ap.dl)}</span>`:''}
+        ${ap.importo?`<span class="tag tag-blue">${fmtCur(ap.importo)}</span>`:''}
+        <span class="tag tag-green">${DB.registrazioni.filter(r=>r.appaltoId===ap.id).length} verbali</span>
+      </div>
+    </div>`;
+}
+
+function renderGLMonths(){
+  const regs=DB.registrazioni.filter(r=>r.appaltoId===currentAppalto.id);
+  const months=[...new Set(regs.map(r=>r.data.slice(0,7)))].sort().reverse();
+  const row=document.getElementById('month-tabs-row');
+  row.innerHTML=`<button class="month-tab ${glFilterMese===''?'active':''}" onclick="setMonthFilter('')">Tutti</button>`+
+    months.map(m=>`<button class="month-tab ${glFilterMese===m?'active':''}" onclick="setMonthFilter('${m}')">${MONTHS[parseInt(m.split('-')[1])-1]} ${m.split('-')[0]}</button>`).join('');
+}
+
+function setMonthFilter(m){
+  glFilterMese=m;renderGLMonths();renderRegList();
+}
+
+function renderRegList(){
+  const el=document.getElementById('reg-list');
+  let regs=DB.registrazioni.filter(r=>r.appaltoId===currentAppalto.id);
+  if(glFilterMese)regs=regs.filter(r=>r.data.startsWith(glFilterMese));
+  regs=regs.sort((a,b)=>b.data.localeCompare(a.data));
+  if(!regs.length){
+    el.innerHTML=`<div class="empty-state"><div class="icon">📝</div><p>Nessun verbale${glFilterMese?' in questo mese':''}.<br>Aggiungi la prima registrazione!</p></div>`;return;
+  }
+  el.innerHTML=regs.map(r=>`
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <span style="font-weight:700;font-size:16px;">📅 ${fmtDate(r.data)}</span>
+        <span class="tag ${r.stato==='firmato'?'tag-green':''}">${r.stato==='firmato'?'✓ Firmato':'✏️ Bozza'}</span>
+      </div>
+      ${r.meteo?`<div style="color:var(--slate);font-size:13px;">☁️ ${esc(r.meteo)}${r.temperatura?` • ${r.temperatura}°C`:''}</div>`:''}
+      ${r.ora_inizio?`<div style="color:var(--slate);font-size:13px;">⏱ ${r.ora_inizio} — ${r.ora_fine||'...'}</div>`:''}
+      <div style="color:var(--creamDark);font-size:13px;margin-top:6px;line-height:1.5;">${esc((r.lavorazioni||'').substring(0,120))}${(r.lavorazioni||'').length>120?'...':''}</div>
+      ${r.allegati?.length?`<div style="color:var(--slate);font-size:12px;margin-top:5px;">📎 ${r.allegati.length} allegati</div>`:''}
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        ${r.firmaDL?'<span class="tag tag-green">✍️ DL</span>':''}
+        ${r.firmaDitta?'<span class="tag tag-blue">✍️ Ditta</span>':''}
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px;">
+        <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center" onclick="openEditReg('${r.id}')">✏️ Modifica</button>
+        <button class="btn btn-danger btn-sm" onclick="delReg('${r.id}')">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// REGISTRAZIONI — stato locale
+// ═══════════════════════════════════════════════════════════
+let regEditId=null;
+let regAllegati=[]; // [{id,type,data,name,caption}]
+let recMediaRecorder=null,recTimer=null,recSecs=0,recChunks=[];
+let pendingFoto=null,pendingPdf=null,pendingAudio=null;
+let firmaState={dl:false,ditta:false};
+let voiceRec={lav:null,note:null};
+
+function resetRegForm(){
+  regEditId=null;regAllegati=[];pendingFoto=null;pendingPdf=null;pendingAudio=null;
+  firmaState={dl:false,ditta:false};
+  ['reg-data','reg-meteo','reg-temp','reg-vento','reg-ori','reg-orf','reg-pres','reg-lav','reg-note'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  document.getElementById('reg-data').value=new Date().toISOString().slice(0,10);
+  // reset pending UI
+  document.getElementById('foto-pending').style.display='none';
+  document.getElementById('pdf-pending').style.display='none';
+  document.getElementById('audio-pending').style.display='none';
+  document.getElementById('rec-bar').style.display='none';
+  clearFirma('dl');clearFirma('ditta');
+  updateAllegatiUI();
+}
+
+function openModalReg(){
+  resetRegForm();
+  document.getElementById('modal-reg-title').textContent='📝 Nuova Registrazione';
+  const ap=currentAppalto;
+  document.getElementById('firma-dl-label').textContent=`Firma DL — ${ap.dl||'Direttore Lavori'}`;
+  openModal('modal-reg');
+  initFirma();
+}
+
+function openEditReg(id){
+  const r=DB.registrazioni.find(x=>x.id===id);if(!r)return;
+  resetRegForm();regEditId=id;regAllegati=[...(r.allegati||[])];
+  document.getElementById('modal-reg-title').textContent='✏️ Modifica Verbale';
+  document.getElementById('reg-data').value=r.data||'';
+  document.getElementById('reg-meteo').value=r.meteo||'';
+  document.getElementById('reg-temp').value=r.temperatura||'';
+  document.getElementById('reg-vento').value=r.vento||'';
+  document.getElementById('reg-ori').value=r.ora_inizio||'';
+  document.getElementById('reg-orf').value=r.ora_fine||'';
+  document.getElementById('reg-pres').value=r.presenti||'';
+  document.getElementById('reg-lav').value=r.lavorazioni||'';
+  document.getElementById('reg-note').value=r.note||'';
+  document.getElementById('firma-dl-label').textContent=`Firma DL — ${currentAppalto.dl||'Direttore Lavori'}`;
+  openModal('modal-reg');
+  initFirma();
+  // Restore signatures
+  if(r.firmaDL){restoreFirma('dl',r.firmaDL);}
+  if(r.firmaDitta){restoreFirma('ditta',r.firmaDitta);}
+  updateAllegatiUI();
+}
+
+function delReg(id){
+  if(!confirm('Eliminare questo verbale?'))return;
+  DB.registrazioni=DB.registrazioni.filter(r=>r.id!==id);
+  saveDB();renderRegList();renderGLHeader();renderGLMonths();
+}
+
+function saveReg(stato){
+  const lav=document.getElementById('reg-lav').value.trim();
+  if(!lav){alert('Inserisci le lavorazioni eseguite');return;}
+  const dl=getFirma('dl');
+  const ditta=getFirma('ditta');
+  const reg={
+    id:regEditId||uid(),
+    appaltoId:currentAppalto.id,
+    data:document.getElementById('reg-data').value,
+    meteo:document.getElementById('reg-meteo').value.trim(),
+    temperatura:document.getElementById('reg-temp').value,
+    vento:document.getElementById('reg-vento').value.trim(),
+    ora_inizio:document.getElementById('reg-ori').value,
+    ora_fine:document.getElementById('reg-orf').value,
+    presenti:document.getElementById('reg-pres').value.trim(),
+    lavorazioni:lav,
+    note:document.getElementById('reg-note').value.trim(),
+    allegati:[...regAllegati],
+    firmaDL:dl,
+    firmaDitta:ditta,
+    stato,
+    createdAt:regEditId?DB.registrazioni.find(r=>r.id===regEditId)?.createdAt:new Date().toISOString(),
+    updatedAt:new Date().toISOString()
+  };
+  if(regEditId){DB.registrazioni=DB.registrazioni.map(r=>r.id===regEditId?reg:r);}
+  else{DB.registrazioni.push(reg);}
+  saveDB();
+  closeModal('modal-reg');
+  renderRegList();renderGLHeader();renderGLMonths();
+}
+
+// ═══════════════════════════════════════════════════════════
+// FIRME — canvas corretto con devicePixelRatio
+// ═══════════════════════════════════════════════════════════
+function initFirma(){
+  ['dl','ditta'].forEach(type=>{
+    const canvas=document.getElementById('firma-'+type);
+    const wrap=document.getElementById('firma-'+type+'-wrap');
+    const dpr=window.devicePixelRatio||1;
+    const w=wrap.clientWidth||320;
+    canvas.width=w*dpr;
+    canvas.height=110*dpr;
+    canvas.style.width=w+'px';
+    canvas.style.height='110px';
+    const ctx=canvas.getContext('2d');
+    ctx.scale(dpr,dpr);
+    ctx.clearRect(0,0,w,110);
+    firmaState[type]=false;
+    document.getElementById('firma-'+type+'-ph').style.display='flex';
+    setupFirmaEvents(canvas,type,dpr,w);
+  });
+}
+
+function setupFirmaEvents(canvas,type,dpr,w){
+  let drawing=false,lastX=0,lastY=0;
+  function getXY(e){
+    const r=canvas.getBoundingClientRect();
+    const src=e.touches?e.touches[0]:e;
+    return{x:(src.clientX-r.left),y:(src.clientY-r.top)};
+  }
+  function start(e){
+    e.preventDefault();drawing=true;
+    const p=getXY(e);lastX=p.x;lastY=p.y;
+    document.getElementById('firma-'+type+'-ph').style.display='none';
+    firmaState[type]=true;
+  }
+  function draw(e){
+    e.preventDefault();if(!drawing)return;
+    const ctx=canvas.getContext('2d');
+    const p=getXY(e);
+    ctx.beginPath();ctx.moveTo(lastX,lastY);ctx.lineTo(p.x,p.y);
+    ctx.strokeStyle='#0a1628';ctx.lineWidth=2;ctx.lineCap='round';ctx.lineJoin='round';
+    ctx.stroke();
+    lastX=p.x;lastY=p.y;
+  }
+  function end(e){e.preventDefault();drawing=false;}
+  canvas.removeEventListener('mousedown',canvas._sd);canvas.removeEventListener('mousemove',canvas._mv);
+  canvas.removeEventListener('mouseup',canvas._eu);canvas.removeEventListener('touchstart',canvas._ts);
+  canvas.removeEventListener('touchmove',canvas._tm);canvas.removeEventListener('touchend',canvas._te);
+  canvas._sd=start;canvas._mv=draw;canvas._eu=end;
+  canvas._ts=start;canvas._tm=draw;canvas._te=end;
+  canvas.addEventListener('mousedown',start);canvas.addEventListener('mousemove',draw);
+  canvas.addEventListener('mouseup',end);canvas.addEventListener('mouseleave',end);
+  canvas.addEventListener('touchstart',start,{passive:false});
+  canvas.addEventListener('touchmove',draw,{passive:false});
+  canvas.addEventListener('touchend',end,{passive:false});
+}
+
+function clearFirma(type){
+  const canvas=document.getElementById('firma-'+type);
+  const dpr=window.devicePixelRatio||1;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width/dpr,canvas.height/dpr);
+  firmaState[type]=false;
+  document.getElementById('firma-'+type+'-ph').style.display='flex';
+}
+
+function getFirma(type){
+  if(!firmaState[type])return null;
+  const canvas=document.getElementById('firma-'+type);
+  return canvas.toDataURL('image/png');
+}
+
+function restoreFirma(type,dataUrl){
+  const canvas=document.getElementById('firma-'+type);
+  const img=new Image();
+  img.onload=()=>{
+    const dpr=window.devicePixelRatio||1;
+    const ctx=canvas.getContext('2d');
+    ctx.drawImage(img,0,0,canvas.width/dpr,canvas.height/dpr);
+    firmaState[type]=true;
+    document.getElementById('firma-'+type+'-ph').style.display='none';
+  };
+  img.src=dataUrl;
+}
+
+// ═══════════════════════════════════════════════════════════
+// ALLEGATI
+// ═══════════════════════════════════════════════════════════
+function countByType(type){return regAllegati.filter(a=>a.type===type).length;}
+function canAddType(type){
+  const maxes={image:5,pdf:3,audio:2};
+  return countByType(type)<maxes[type] && regAllegati.length<10;
+}
+
+function updateAllegatiUI(){
+  const canDel=DB.currentUser&&DB.currentUser.ruolo==='DL';
+  // Counters
+  document.getElementById('foto-count').textContent=`(${countByType('image')}/5)`;
+  document.getElementById('pdf-count').textContent=`(${countByType('pdf')}/3)`;
+  document.getElementById('audio-count').textContent=`(${countByType('audio')}/2)`;
+  // Foto list
+  document.getElementById('foto-list').innerHTML=regAllegati.filter(a=>a.type==='image').map(a=>`
+    <div class="allegato-item">
+      <img src="${a.data}" class="foto-thumb" style="margin-bottom:6px;"/>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;">
+        <div style="flex:1;">
+          ${canDel?`<input class="caption-input" value="${esc(a.caption||'')}" placeholder="Didascalia…" onchange="updateCaption('${a.id}',this.value)"/>`
+            :`${a.caption?`<div class="caption-text">${esc(a.caption)}</div>`:''}`}
+        </div>
+        ${canDel?`<button class="btn btn-danger btn-sm" onclick="removeAllegato('${a.id}')">✕</button>`:''}
+      </div>
+    </div>`).join('');
+  // PDF list
+  document.getElementById('pdf-list').innerHTML=regAllegati.filter(a=>a.type==='pdf').map(a=>`
+    <div class="allegato-item">
+      <div class="allegato-row">
+        <div class="allegato-icon">📄</div>
+        <div class="allegato-info">
+          <div class="allegato-name">${esc(a.name)}</div>
+          ${canDel?`<input class="caption-input" value="${esc(a.caption||'')}" placeholder="Didascalia…" onchange="updateCaption('${a.id}',this.value)"/>`
+            :`${a.caption?`<div class="caption-text">${esc(a.caption)}</div>`:''}`}
+        </div>
+        ${canDel?`<button class="btn btn-danger btn-sm" onclick="removeAllegato('${a.id}')">✕</button>`:''}
+      </div>
+    </div>`).join('');
+  // Audio list
+  document.getElementById('audio-list').innerHTML=regAllegati.filter(a=>a.type==='audio').map(a=>`
+    <div class="allegato-item">
+      <div class="allegato-row" style="margin-bottom:6px;">
+        <div class="allegato-icon">🎙️</div>
+        <div class="allegato-info"><div class="allegato-name">${esc(a.name)}</div></div>
+        ${canDel?`<button class="btn btn-danger btn-sm" onclick="removeAllegato('${a.id}')">✕</button>`:''}
+      </div>
+      <audio src="${a.data}" controls class="audio-player"></audio>
+      ${canDel?`<input class="caption-input" value="${esc(a.caption||'')}" placeholder="Didascalia…" onchange="updateCaption('${a.id}',this.value)"/>`
+        :`${a.caption?`<div class="caption-text">${esc(a.caption)}</div>`:''}`}
+    </div>`).join('');
+}
+
+function removeAllegato(id){
+  if(DB.currentUser?.ruolo!=='DL'){alert('Solo il DL può rimuovere allegati.');return;}
+  regAllegati=regAllegati.filter(a=>a.id!==id);updateAllegatiUI();
+}
+function updateCaption(id,val){
+  const a=regAllegati.find(x=>x.id===id);if(a)a.caption=val;
+}
+
+// --- FOTO ---
+function triggerCamera(){if(!canAddType('image')){alert('Max 5 foto o 10 allegati totali.');return;}document.getElementById('input-camera').click();}
+function triggerGallery(){if(!canAddType('image')){alert('Max 5 foto o 10 allegati totali.');return;}document.getElementById('input-gallery').click();}
+
+function addFoto(e){
+  const f=e.target.files[0];if(!f)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    resizeImg(ev.target.result,1,d=>{
+      pendingFoto={data:d,name:f.name};
+      document.getElementById('foto-pending-img').src=d;
+      document.getElementById('foto-pending-caption').value='';
+      document.getElementById('foto-pending').style.display='block';
+    });
+  };
+  reader.readAsDataURL(f);
+  e.target.value='';
+}
+function cancelFoto(){pendingFoto=null;document.getElementById('foto-pending').style.display='none';}
+function confirmFoto(){
+  if(!pendingFoto)return;
+  regAllegati.push({id:uid(),type:'image',data:pendingFoto.data,name:pendingFoto.name,caption:document.getElementById('foto-pending-caption').value,createdAt:new Date().toISOString()});
+  cancelFoto();updateAllegatiUI();
+}
+
+// --- PDF ---
+function addPdf(e){
+  const f=e.target.files[0];if(!f)return;
+  if(!canAddType('pdf')){alert('Max 3 PDF o 10 allegati totali.');e.target.value='';return;}
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    pendingPdf={data:ev.target.result,name:f.name};
+    document.getElementById('pdf-pending-name').textContent='📄 '+f.name;
+    document.getElementById('pdf-pending-caption').value='';
+    document.getElementById('pdf-pending').style.display='block';
+  };
+  reader.readAsDataURL(f);
+  e.target.value='';
+}
+function cancelPdf(){pendingPdf=null;document.getElementById('pdf-pending').style.display='none';}
+function confirmPdf(){
+  if(!pendingPdf)return;
+  regAllegati.push({id:uid(),type:'pdf',data:pendingPdf.data,name:pendingPdf.name,caption:document.getElementById('pdf-pending-caption').value,createdAt:new Date().toISOString()});
+  cancelPdf();updateAllegatiUI();
+}
+
+// --- AUDIO RECORDING ---
+function startRecording(){
+  if(!canAddType('audio')){alert('Max 2 audio o 10 allegati totali.');return;}
+  navigator.mediaDevices.getUserMedia({audio:{sampleRate:8000,channelCount:1,echoCancellation:true}})
+  .then(stream=>{
+    const mime=MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':
+                MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':'audio/ogg';
+    recMediaRecorder=new MediaRecorder(stream,{mimeType:mime,audioBitsPerSecond:16000});
+    recChunks=[];
+    recMediaRecorder.ondataavailable=e=>{if(e.data.size>0)recChunks.push(e.data);};
+    recMediaRecorder.onstop=()=>{
+      stream.getTracks().forEach(t=>t.stop());
+      clearInterval(recTimer);
+      const blob=new Blob(recChunks,{type:recMediaRecorder.mimeType});
+      const fr=new FileReader();
+      fr.onload=ev=>{
+        const ext=mime.includes('webm')?'webm':'ogg';
+        pendingAudio={data:ev.target.result,name:'nota_'+new Date().toISOString().slice(0,19).replace(/[T:]/g,'-')+'.'+ext};
+        const player=document.getElementById('audio-pending-player');
+        player.src=ev.target.result;
+        document.getElementById('audio-pending-name').textContent='🎙️ '+pendingAudio.name;
+        document.getElementById('audio-pending-caption').value='';
+        document.getElementById('audio-pending').style.display='block';
+        document.getElementById('rec-bar').style.display='none';
+        recSecs=0;
+      };
+      fr.readAsDataURL(blob);
+    };
+    recMediaRecorder.start(200);
+    document.getElementById('rec-bar').style.display='flex';
+    document.getElementById('rec-start-btn').style.display='none';
+    recSecs=0;updateRecBar();
+    recTimer=setInterval(()=>{
+      recSecs++;updateRecBar();
+      if(recSecs>=30){stopRecording();}
+    },1000);
+  })
+  .catch(err=>{alert('Microfono non disponibile: '+err.message);});
+}
+
+function stopRecording(){
+  if(recMediaRecorder&&recMediaRecorder.state!=='inactive')recMediaRecorder.stop();
+  clearInterval(recTimer);
+  document.getElementById('rec-start-btn').style.display='';
+}
+
+function updateRecBar(){
+  document.getElementById('rec-fill').style.width=(recSecs/30*100)+'%';
+  document.getElementById('rec-secs').textContent=recSecs+'s / 30s';
+}
+
+function addAudio(e){
+  const f=e.target.files[0];if(!f)return;
+  if(!canAddType('audio')){alert('Max 2 audio o 10 allegati totali.');e.target.value='';return;}
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    pendingAudio={data:ev.target.result,name:f.name};
+    const player=document.getElementById('audio-pending-player');
+    player.src=ev.target.result;
+    document.getElementById('audio-pending-name').textContent='🎙️ '+f.name;
+    document.getElementById('audio-pending-caption').value='';
+    document.getElementById('audio-pending').style.display='block';
+  };
+  reader.readAsDataURL(f);
+  e.target.value='';
+}
+function cancelAudio(){pendingAudio=null;document.getElementById('audio-pending').style.display='none';}
+function confirmAudio(){
+  if(!pendingAudio)return;
+  regAllegati.push({id:uid(),type:'audio',data:pendingAudio.data,name:pendingAudio.name,caption:document.getElementById('audio-pending-caption').value,createdAt:new Date().toISOString()});
+  cancelAudio();updateAllegatiUI();
+}
+
+// ═══════════════════════════════════════════════════════════
+// VOICE DICTATION
+// ═══════════════════════════════════════════════════════════
+let activeVoiceField=null,activeVoiceRec=null;
+function toggleVoice(fieldId,btnId){
+  const SpeechRec=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SpeechRec){alert('Dettatura vocale non supportata in questo browser. Usa Chrome.');return;}
+  if(activeVoiceRec){
+    activeVoiceRec.stop();activeVoiceRec=null;
+    if(activeVoiceField)document.getElementById('voice-btn-'+activeVoiceField.replace('reg-','')).classList.remove('active');
+    activeVoiceField=null;return;
+  }
+  const r=new SpeechRec();
+  r.lang='it-IT';r.continuous=true;r.interimResults=false;
+  r.onresult=e=>{
+    const t=Array.from(e.results).slice(e.resultIndex).map(x=>x[0].transcript).join(' ');
+    const el=document.getElementById(fieldId);
+    el.value=(el.value?el.value+' ':'')+t;
+  };
+  r.onerror=r.onend=()=>{
+    const btn=document.getElementById(btnId);
+    if(btn)btn.classList.remove('active');
+    activeVoiceRec=null;activeVoiceField=null;
+  };
+  r.start();
+  activeVoiceRec=r;activeVoiceField=fieldId;
+  document.getElementById(btnId).classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════════
+// IMAGE RESIZE
+// ═══════════════════════════════════════════════════════════
+function resizeImg(dataUrl,maxMB,cb){
+  const img=new Image();
+  img.onload=()=>{
+    let w=img.naturalWidth,h=img.naturalHeight,q=0.85;
+    const canvas=document.createElement('canvas');
+    const ctx=canvas.getContext('2d');
+    const tryEnc=()=>{
+      canvas.width=w;canvas.height=h;
+      ctx.drawImage(img,0,0,w,h);
+      const out=canvas.toDataURL('image/jpeg',q);
+      const bytes=(out.length-'data:image/jpeg;base64,'.length)*3/4;
+      if(bytes<=maxMB*1024*1024||q<0.2){cb(out);return;}
+      if(q>0.35)q-=0.1;else{w=Math.round(w*.85);h=Math.round(h*.85);q=0.7;}
+      tryEnc();
+    };
+    tryEnc();
+  };
+  img.src=dataUrl;
+}
+
+// ═══════════════════════════════════════════════════════════
+// STAMPA PDF
+// ═══════════════════════════════════════════════════════════
+function openModalStampa(){
+  const regs=DB.registrazioni.filter(r=>r.appaltoId===currentAppalto.id);
+  const months=[...new Set(regs.map(r=>r.data.slice(0,7)))].sort().reverse();
+  const sel=document.getElementById('stampa-mese');
+  sel.innerHTML='<option value="">Tutti i periodi</option>'+
+    months.map(m=>`<option value="${m}">${MONTHS[parseInt(m.split('-')[1])-1]} ${m.split('-')[0]}</option>`).join('');
+  openModal('modal-stampa');
+}
+
+function doStampa(){
+  const mese=document.getElementById('stampa-mese').value;
+  closeModal('modal-stampa');
+  const ap=currentAppalto;
+  let regs=DB.registrazioni.filter(r=>r.appaltoId===ap.id);
+  if(mese){const[y,m]=mese.split('-');regs=regs.filter(r=>{const d=new Date(r.data);return d.getFullYear()===+y&&d.getMonth()===+m-1;});}
+  regs=regs.sort((a,b)=>a.data.localeCompare(b.data));
+  buildAndPrint(ap,regs,mese);
+}
+
+function buildAndPrint(ap,regs,mese){
+  const rows=regs.map((r,i)=>`
+    <tr>
+      <td>${i+1}</td><td>${fmtDate(r.data)}</td>
+      <td>${he(r.meteo||'')}${r.temperatura?' '+r.temperatura+'°C':''}</td>
+      <td style="font-size:10px;">${he((r.lavorazioni||'').substring(0,100))}${(r.lavorazioni||'').length>100?'…':''}</td>
+      <td align="center">${r.allegati?.length||0}</td>
+      <td style="color:${r.stato==='firmato'?'#16a34a':'#ca8a04'};font-weight:600">${r.stato||'bozza'}</td>
+    </tr>`).join('');
+
+  const verbali=regs.map((r,idx)=>{
+    const fotos=(r.allegati||[]).filter(a=>a.type==='image');
+    const pdfs=(r.allegati||[]).filter(a=>a.type==='pdf');
+    const auds=(r.allegati||[]).filter(a=>a.type==='audio');
+    const fotoHtml=fotos.length?`<div class="asec"><div class="atit">📷 Fotografie (${fotos.length})</div><div class="foto-grid">${fotos.map(a=>`<div><img src="${a.data}" style="width:100%;max-height:200px;object-fit:cover;border-radius:5px;border:1px solid #ddd;"/>${a.caption?`<div class="cap">${he(a.caption)}</div>`:''}</div>`).join('')}</div></div>`:'';
+    const pdfHtml=pdfs.length?`<div class="asec"><div class="atit">📄 Documenti (${pdfs.length})</div>${pdfs.map(a=>`<div class="doc">📄 ${he(a.name)}${a.caption?` — <em>${he(a.caption)}</em>`:''}</div>`).join('')}</div>`:'';
+    const audHtml=auds.length?`<div class="asec"><div class="atit">🎙️ Note audio (${auds.length})</div>${auds.map(a=>`<div class="doc">🎙️ ${he(a.name)}${a.caption?` — <em>${he(a.caption)}</em>`:''}</div>`).join('')}</div>`:'';
+    return `<div class="verb${idx>0?' pb':''}">
+      <div class="vh"><div class="vt">VERBALE GIORNALIERO</div><div>Data: <strong>${fmtDate(r.data)}</strong></div></div>
+      <table class="itab">
+        <tr><td><b>Meteo:</b> ${he(r.meteo||'—')}</td><td><b>Temp:</b> ${r.temperatura||'—'}°C</td><td><b>Vento:</b> ${he(r.vento||'—')}</td></tr>
+        <tr><td><b>Inizio:</b> ${r.ora_inizio||'—'}</td><td><b>Fine:</b> ${r.ora_fine||'—'}</td><td></td></tr>
+      </table>
+      <div class="sec"><b>Personale e mezzi:</b><br>${he(r.presenti||'—').replace(/\n/g,'<br>')}</div>
+      <div class="sec"><b>Lavorazioni eseguite:</b><br>${he(r.lavorazioni||'—').replace(/\n/g,'<br>')}</div>
+      ${r.note?`<div class="sec"><b>Note / ODS:</b><br>${he(r.note).replace(/\n/g,'<br>')}</div>`:''}
+      ${fotoHtml}${pdfHtml}${audHtml}
+      <div class="firme">
+        <div class="fbox"><div class="flbl">Firma DL — ${he(ap.dl||'')}</div>${r.firmaDL?`<img src="${r.firmaDL}" class="fsig"/>`:'<div class="fempty"></div>'}</div>
+        <div class="fbox"><div class="flbl">Firma Ditta / Impresa</div>${r.firmaDitta?`<img src="${r.firmaDitta}" class="fsig"/>`:'<div class="fempty"></div>'}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const html=`<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"/><title>GL — ${he(ap.nome)}</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:Georgia,serif;font-size:12px;color:#111;background:#fff;}
+    .cover{padding:28px 32px;border-bottom:3px solid #c9a84c;margin-bottom:20px;}
+    h1{font-size:22px;color:#0a1628;margin-bottom:4px;}
+    h2{font-size:14px;color:#444;font-weight:400;margin-bottom:8px;}
+    .meta{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;}
+    .mi{padding:5px 9px;background:#f5f0e8;border-radius:5px;}
+    .mi strong{display:block;font-size:9px;color:#888;text-transform:uppercase;margin-bottom:1px;}
+    .stamp{font-size:10px;color:#999;margin-top:8px;}
+    h3{font-size:15px;color:#0a1628;border-bottom:2px solid #c9a84c;padding-bottom:5px;margin:20px 0 10px;}
+    table.rt{width:100%;border-collapse:collapse;font-size:11px;}
+    .rt th{background:#0a1628;color:#fff;padding:6px 7px;text-align:left;}
+    .rt td{padding:5px 7px;border-bottom:1px solid #ddd;}
+    .rt tr:nth-child(even) td{background:#f9f7f3;}
+    .verb{padding:20px 28px;border:1px solid #ccc;border-radius:7px;margin-bottom:24px;break-inside:avoid;}
+    .pb{page-break-before:always;}
+    .vh{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:7px;border-bottom:2px solid #c9a84c;}
+    .vt{font-size:14px;font-weight:700;color:#0a1628;}
+    .itab{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:8px;}
+    .itab td{padding:3px 7px;background:#f5f0e8;border:1px solid #e0d8c8;}
+    .sec{margin:8px 0;line-height:1.6;font-size:11px;}
+    .asec{margin:10px 0;}
+    .atit{font-weight:700;font-size:11px;color:#0a1628;border-left:3px solid #c9a84c;padding-left:5px;margin-bottom:6px;}
+    .foto-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+    .cap{font-size:9px;color:#666;font-style:italic;margin-top:2px;}
+    .doc{background:#f0f4ff;border-left:3px solid #2563eb;padding:5px 8px;font-size:11px;margin-bottom:3px;border-radius:3px;}
+    .firme{display:flex;gap:20px;margin-top:18px;padding-top:14px;border-top:1px solid #ddd;}
+    .fbox{flex:1;text-align:center;}
+    .flbl{font-size:9px;font-weight:700;color:#555;text-transform:uppercase;margin-bottom:5px;}
+    .fsig{max-width:160px;height:55px;object-fit:contain;display:block;margin:0 auto;border-bottom:1.5px solid #111;}
+    .fempty{height:55px;border-bottom:1.5px solid #111;width:80%;margin:0 auto;}
+    @media print{.pb{page-break-before:always;}body{margin:0;}@page{margin:12mm;}}
+  </style></head><body>
+  <div class="cover">
+    ${ap.foto?`<img src="${ap.foto}" style="width:100%;max-height:160px;object-fit:cover;border-radius:8px;margin-bottom:14px;"/>`:''}
+    <h1>GIORNALE DEI LAVORI</h1>
+    <h2>${he(ap.nome)}</h2>
+    ${mese?`<h2>Periodo: ${MONTHS[parseInt(mese.split('-')[1])-1]} ${mese.split('-')[0]}</h2>`:''}
+    <div class="meta">
+      ${ap.indirizzo?`<div class="mi"><strong>Indirizzo cantiere</strong>${he(ap.indirizzo)}</div>`:''}
+      ${ap.importo?`<div class="mi"><strong>Importo contrattuale</strong>${fmtCur(ap.importo)}</div>`:''}
+      ${ap.dl?`<div class="mi"><strong>Direttore Lavori</strong>${he(ap.dl)}</div>`:''}
+      ${ap.rup?`<div class="mi"><strong>RUP</strong>${he(ap.rup)}</div>`:''}
+      ${ap.progettista?`<div class="mi"><strong>Progettista</strong>${he(ap.progettista)}</div>`:''}
+      ${ap.cse?`<div class="mi"><strong>CSE</strong>${he(ap.cse)}</div>`:''}
+      ${ap.cig?`<div class="mi"><strong>CIG</strong>${he(ap.cig)}</div>`:''}
+      ${ap.cup?`<div class="mi"><strong>CUP</strong>${he(ap.cup)}</div>`:''}
+      ${ap.dataInizio?`<div class="mi"><strong>Data inizio</strong>${fmtDate(ap.dataInizio)}</div>`:''}
+      ${ap.durata?`<div class="mi"><strong>Durata (gg)</strong>${he(ap.durata)}</div>`:''}
+    </div>
+    <div class="stamp">Stampato il ${new Date().toLocaleDateString('it-IT')} — ${regs.length} verbali nel periodo</div>
+  </div>
+  <h3>ELENCO REGISTRAZIONI</h3>
+  <table class="rt"><thead><tr><th>#</th><th>Data</th><th>Meteo</th><th>Lavorazioni (sintesi)</th><th>All.</th><th>Stato</th></tr></thead>
+  <tbody>${rows||`<tr><td colspan="6" style="text-align:center;color:#999;padding:14px;">Nessuna registrazione nel periodo</td></tr>`}</tbody></table>
+  <h3 style="margin-top:28px;">VERBALI GIORNALIERI</h3>
+  ${verbali||`<p style="color:#999;text-align:center;padding:20px;">Nessun verbale nel periodo selezionato.</p>`}
+  <script>window.onload=function(){window.print();}<\/script>
+  <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});}</script>
+</body></html>`;
+
+  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  window.open(url,'_blank');
+}
+
+// ═══════════════════════════════════════════════════════════
+// BACKUP JSON
+// ═══════════════════════════════════════════════════════════
+function openModalBackup(){openModal('modal-backup');document.getElementById('import-msg').style.display='none';}
+
+function doExportJSON(){
+  const ap=currentAppalto;
+  const regs=DB.registrazioni.filter(r=>r.appaltoId===ap.id);
+  const payload={_mpGL:true,ver:'2.0',appaltoId:ap.id,appaltoNome:ap.nome,exportedAt:new Date().toISOString(),registrazioni:regs};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='GL_'+ap.nome.replace(/[^\w]/g,'_').slice(0,40)+'_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();URL.revokeObjectURL(url);
+}
+
+function doImportJSON(e){
+  const f=e.target.files[0];if(!f)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const p=JSON.parse(ev.target.result);
+      if(!p._mpGL||!Array.isArray(p.registrazioni)){showImportMsg('warn','File non valido.');return;}
+      const existing=new Set(DB.registrazioni.map(r=>r.id));
+      const toAdd=p.registrazioni.map(r=>({...r,appaltoId:currentAppalto.id})).filter(r=>!existing.has(r.id));
+      const sk=p.registrazioni.length-toAdd.length;
+      DB.registrazioni.push(...toAdd);saveDB();
+      renderRegList();renderGLHeader();renderGLMonths();
+      showImportMsg('ok',`✅ Importate ${toAdd.length} registrazioni.${sk>0?` (${sk} già presenti, saltate)`:''}`);
+    }catch(err){showImportMsg('warn','Errore lettura JSON: '+err.message);}
+  };
+  reader.readAsText(f);
+  e.target.value='';
+}
+function showImportMsg(type,text){
+  const el=document.getElementById('import-msg');
+  el.style.display='block';el.textContent=text;
+  el.style.background=type==='ok'?'rgba(22,163,74,.2)':'rgba(202,138,4,.2)';
+  el.style.color=type==='ok'?'#4ade80':'#fbbf24';
+}
+
+// ═══════════════════════════════════════════════════════════
+// MODAL HELPERS
+// ═══════════════════════════════════════════════════════════
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function closeModalIfOverlay(e,id){if(e.target===e.currentTarget)closeModal(id);}
+
+// ═══════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function he(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+</script>
+<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});}</script>
+</body>
+</html>
