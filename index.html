@@ -166,6 +166,8 @@ audio{width:100%;margin:5px 0;}
           <option value="DL">Direttore Lavori (DL)</option>
           <option value="IC">Ispettore di Cantiere</option>
           <option value="DO">Direttore Operativo</option>
+          <option value="DT">Ditta / Impresa</option>
+          <option value="AL">Altro</option>
         </select>
       </div>
     </div>
@@ -414,19 +416,32 @@ audio{width:100%;margin:5px 0;}
 <!-- ══ MODAL: BACKUP ══ -->
 <div id="mo-backup" class="mo" onclick="moClick(event,'mo-backup')">
 <div class="mb">
-  <div class="mh"><span class="mt">📦 Backup Registrazioni</span><button class="mc" onclick="closeMo('mo-backup')">✕</button></div>
-  <div style="background:var(--mid);border-radius:10px;padding:13px;margin-bottom:12px;border:1px solid var(--light);">
-    <div style="font-weight:700;color:var(--gold);margin-bottom:6px;">⬇️ Scarica</div>
-    <p style="color:var(--slate);font-size:13px;margin-bottom:10px;">Esporta tutte le registrazioni come file JSON.</p>
-    <button class="btn p full" onclick="doExport()">⬇️ Scarica JSON</button>
+  <div class="mh"><span class="mt">📦 Archivio & Backup</span><button class="mc" onclick="closeMo('mo-backup')">✕</button></div>
+  <div id="imp-msg" style="display:none;margin-bottom:12px;padding:10px 13px;border-radius:8px;font-size:13px;font-weight:600;"></div>
+
+  <!-- SCARICA ARCHIVIO COMPLETO -->
+  <div style="background:var(--mid);border-radius:10px;padding:13px;margin-bottom:10px;border:1px solid var(--light);">
+    <div style="font-weight:700;color:var(--gold);font-size:14px;margin-bottom:4px;">⬇️ Scarica archivio completo</div>
+    <p style="color:var(--slate);font-size:12px;margin-bottom:10px;">Esporta tutti gli appalti e tutte le registrazioni. Usabile su qualsiasi dispositivo con questa app.</p>
+    <button class="btn p full" onclick="doExportAll()">⬇️ Scarica archivio completo</button>
   </div>
+
+  <!-- CARICA ARCHIVIO (SOSTITUISCI) -->
+  <div style="background:var(--mid);border-radius:10px;padding:13px;margin-bottom:10px;border:1px solid var(--light);">
+    <div style="font-weight:700;color:var(--gold);font-size:14px;margin-bottom:4px;">📥 Carica archivio</div>
+    <p style="color:var(--slate);font-size:12px;margin-bottom:10px;"><strong style="color:#f87171;">Sostituisce</strong> l'archivio corrente con quello del file. Tutti i dati esistenti vengono rimpiazzati.</p>
+    <input type="file" id="inp-load-all" accept=".json,application/json" style="display:none" onchange="doLoadAll(this)"/>
+    <button class="btn d full" onclick="document.getElementById('inp-load-all').click()">📥 Carica &amp; sostituisci archivio</button>
+  </div>
+
+  <!-- AGGIORNA ARCHIVIO (MERGE) -->
   <div style="background:var(--mid);border-radius:10px;padding:13px;border:1px solid var(--light);">
-    <div style="font-weight:700;color:var(--gold);margin-bottom:6px;">⬆️ Importa</div>
-    <p style="color:var(--slate);font-size:13px;margin-bottom:10px;">Carica un JSON precedente. I duplicati vengono saltati.</p>
-    <input type="file" id="inp-import" accept=".json,application/json" style="display:none" onchange="doImport(this)"/>
-    <button class="btn g full" onclick="document.getElementById('inp-import').click()">⬆️ Seleziona JSON</button>
-    <div id="imp-msg" style="display:none;margin-top:10px;padding:9px 12px;border-radius:7px;font-size:13px;font-weight:600;"></div>
+    <div style="font-weight:700;color:var(--gold);font-size:14px;margin-bottom:4px;">🔄 Aggiorna archivio</div>
+    <p style="color:var(--slate);font-size:12px;margin-bottom:10px;"><strong style="color:#4ade80;">Aggiunge</strong> appalti e registrazioni mancanti dall'archivio importato, senza cancellare nulla. Ideale per sincronizzare con altri utenti.</p>
+    <input type="file" id="inp-merge-all" accept=".json,application/json" style="display:none" onchange="doMergeAll(this)"/>
+    <button class="btn g full" onclick="document.getElementById('inp-merge-all').click()">🔄 Aggiorna archivio (merge)</button>
   </div>
+
   <button class="btn s full" style="margin-top:12px;" onclick="closeMo('mo-backup')">Chiudi</button>
 </div>
 </div>
@@ -1235,35 +1250,107 @@ function buildPrint(ap,rr,mese){
 }
 
 // ════════════════════════════════════════════════════
-// BACKUP
+// BACKUP & ARCHIVIO COMPLETO
 // ════════════════════════════════════════════════════
-function openBackupModal(){document.getElementById('imp-msg').style.display='none';document.getElementById('inp-import').value='';openMo('mo-backup');}
-function doExport(){
-  const rr=DB.registrazioni.filter(r=>r.appaltoId===curAP.id);
-  const payload={_mpGL:true,ver:'2.2',appaltoId:curAP.id,appaltoNome:curAP.nome,exportedAt:new Date().toISOString(),registrazioni:rr};
+function openBackupModal(){
+  showImpMsg('','');
+  document.getElementById('imp-msg').style.display='none';
+  ['inp-load-all','inp-merge-all'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  openMo('mo-backup');
+}
+
+// ── Scarica archivio COMPLETO (tutti gli appalti + tutte le registrazioni) ──
+function doExportAll(){
+  const payload={
+    _mpGL:true, _type:'full_archive', ver:'2.3',
+    exportedAt:new Date().toISOString(),
+    exportedBy:DB.currentUser?.nome||'',
+    users:DB.users,
+    appalti:DB.appalti,
+    registrazioni:DB.registrazioni
+  };
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='GL_'+curAP.nome.replace(/[^\w]/g,'_').slice(0,40)+'_'+new Date().toISOString().slice(0,10)+'.json';a.click();
+  a.download='mpGL_archivio_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();URL.revokeObjectURL(a.href);
 }
-function doImport(inp){
+
+// ── Carica archivio COMPLETO (sostituisce tutto) ──
+function doLoadAll(inp){
+  const f=inp.files[0];if(!f)return;
+  if(!confirm('⚠️ ATTENZIONE\n\nQuesto sostituirà TUTTO l\'archivio corrente (appalti, registrazioni, utenti) con il file selezionato.\n\nContinuare?')){inp.value='';return;}
+  const rd=new FileReader();
+  rd.onload=e=>{
+    try{
+      const p=JSON.parse(e.target.result);
+      if(!p._mpGL){showImpMsg('warn','File non valido: non è un archivio mp_GL appalti.');return;}
+      // Preserve current user session
+      const curUser=DB.currentUser;
+      DB.users=p.users||[];
+      DB.appalti=p.appalti||[];
+      DB.registrazioni=p.registrazioni||[];
+      // Try to restore the session user from the new archive
+      const restored=DB.users.find(u=>u.id===curUser?.id)||DB.users.find(u=>u.username===curUser?.username)||null;
+      DB.currentUser=restored||curUser;
+      save();
+      renderAppalti();
+      showImpMsg('ok','✅ Archivio caricato: '+DB.appalti.length+' appalti, '+DB.registrazioni.length+' registrazioni.');
+    }catch(err){showImpMsg('warn','Errore lettura file: '+err.message);}
+  };
+  rd.readAsText(f);inp.value='';
+}
+
+// ── Aggiorna archivio (MERGE — aggiunge senza cancellare) ──
+function doMergeAll(inp){
   const f=inp.files[0];if(!f)return;
   const rd=new FileReader();
   rd.onload=e=>{
     try{
       const p=JSON.parse(e.target.result);
-      if(!p._mpGL||!Array.isArray(p.registrazioni)){showImpMsg('warn','File non valido');return;}
-      const ex=new Set(DB.registrazioni.map(r=>r.id));
-      const add=p.registrazioni.map(r=>({...r,appaltoId:curAP.id})).filter(r=>!ex.has(r.id));
-      const sk=p.registrazioni.length-add.length;
-      DB.registrazioni.push(...add);save();
-      renderRegs();renderGLHead();renderMTabs();
-      showImpMsg('ok','✅ Importate '+add.length+' registrazioni.'+(sk?' ('+sk+' saltate)':''));
-    }catch(err){showImpMsg('warn','Errore JSON: '+err.message);}
+      if(!p._mpGL){showImpMsg('warn','File non valido: non è un archivio mp_GL appalti.');return;}
+
+      let newAP=0,newReg=0,newU=0;
+
+      // Merge users (skip existing by id)
+      const exU=new Set(DB.users.map(u=>u.id));
+      (p.users||[]).forEach(u=>{if(!exU.has(u.id)){DB.users.push(u);newU++;}});
+
+      // Merge appalti (skip existing by id, update if newer)
+      const apMap=new Map(DB.appalti.map(a=>[a.id,a]));
+      (p.appalti||[]).forEach(a=>{
+        if(!apMap.has(a.id)){DB.appalti.push(a);apMap.set(a.id,a);newAP++;}
+        // else: existing appalto kept as-is (don't overwrite local edits)
+      });
+
+      // Merge registrazioni (skip existing by id)
+      const exR=new Set(DB.registrazioni.map(r=>r.id));
+      (p.registrazioni||[]).forEach(r=>{
+        if(!exR.has(r.id)){
+          // Only add if the appalto exists in our archive
+          if(apMap.has(r.appaltoId)){DB.registrazioni.push(r);newReg++;}
+        }
+      });
+
+      save();
+      // Refresh current view if we're in GL
+      if(curAP){renderRegs();renderGLHead();renderMTabs();}
+      renderAppalti();
+      const parts=[];
+      if(newAP)parts.push(newAP+' appalti');
+      if(newReg)parts.push(newReg+' registrazioni');
+      if(newU)parts.push(newU+' utenti');
+      showImpMsg('ok','✅ Merge completato: '+(parts.length?parts.join(', ')+' aggiunti.':'Nessun dato nuovo da aggiungere.'));
+    }catch(err){showImpMsg('warn','Errore lettura file: '+err.message);}
   };
   rd.readAsText(f);inp.value='';
 }
+
 function showImpMsg(t,tx){
-  const el=document.getElementById('imp-msg');el.textContent=tx;el.style.display='block';
+  const el=document.getElementById('imp-msg');
+  if(!tx){el.style.display='none';return;}
+  el.textContent=tx;el.style.display='block';
   el.style.background=t==='ok'?'rgba(22,163,74,.2)':'rgba(220,38,38,.15)';
   el.style.color=t==='ok'?'#4ade80':'#f87171';
 }
